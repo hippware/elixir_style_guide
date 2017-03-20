@@ -16,9 +16,10 @@
   * [Exceptions](#exceptions)
   * _Collections_
   * [Strings](#strings)
-  * _Regular Expressions_
+  * [Regular Expressions](#regular-expressions)
   * [Metaprogramming](#metaprogramming)
   * [Testing](#testing)
+  * [Pitfalls](#pitfalls)
   * [Alternative Style Guides](#alternative-style-guides)
   * [Tools](#tools)
 * __[Getting Involved](#getting-involved)__
@@ -74,6 +75,10 @@ Translations of the guide are available in the following languages:
   end
   ```
 
+* <a name="no-semicolon"></a>
+  Use one expression per line, as a corollary - don't use semicolon `;` to separate statements and expressions.
+  <sup>[[link](#no-semicolon)]</sup>
+
 * <a name="line-endings"></a>
   Use Unix-style line endings (\*BSD/Solaris/Linux/OSX users are covered by
   default, Windows users have to be extra careful).
@@ -87,6 +92,9 @@ Translations of the guide are available in the following languages:
   ```sh
   git config --global core.autocrlf true
   ```
+* <a name="character-per-line-limit"></a>
+  Keep lines fewer than 80 characters whenever possible.
+  <sup>[[link](#character-per-line-limit)]</sup>
 
 * <a name="spaces"></a>
   Use spaces around operators, after commas, colons and semicolons.
@@ -111,6 +119,57 @@ Translations of the guide are available in the following languages:
   0 - 1 == -1
   ^pinned = some_func()
   5 in 1..10
+  ```
+
+* <a name="default-arguments"></a>
+  Use spaces around default arguments `\\` definition.
+  <sup>[[link](#default-arguments)]</sup>
+
+* <a name="bitstring-segment-options"></a>
+  Do not put spaces around segment options definition in bitstrings.
+  <sup>[[link](#bitstring-segment-options)]</sup>
+
+  ```elixir
+  # not preferred
+  <<102 :: unsigned-big-integer, rest :: binary>>
+  <<102::unsigned - big - integer, rest::binary>>
+
+  # preferred
+  <<102::unsigned-big-integer, rest::binary>>
+  ```
+
+* <a name="no-space-bang"></a>
+  Don't put a space after `!` to negate an expression.
+  <sup>[[link](#no-space-bang)]</sup>
+
+  ```elixir
+  # not preferred
+  denied = ! allowed?
+
+  # preferred
+  denied = !allowed?
+  ```
+
+* <a name="guard-clauses"></a>
+  Indent `when` guard clauses on the same level as the function/macro signature in the definition they're part of. Do this only if you cannot fit the `when` guard on the same line as the definition. You may put the `do` on a new line to separate the guard clause from the body.
+  <sup>[[link](#guard-clauses)]</sup>
+
+  ```elixir
+  def format_error({exception, stacktrace})
+  when is_list(stacktrace) and stacktrace != [] do
+    # ...
+  end
+
+  def format_error({exception, stacktrace})
+  when is_list(stacktrace) and stacktrace != []
+  do
+    # ...
+  end
+
+  defmacro dngettext(domain, msgid, msgid_plural, count)
+  when is_binary(msgid) and is_binary(msgid_plural) do
+    # ...
+  end
   ```
 
 * <a name="def-spacing"></a>
@@ -257,6 +316,55 @@ Translations of the guide are available in the following languages:
   some_string |> String.strip |> String.downcase |> String.codepoints
   ```
 
+* <a name="multi-line-expr-assignment"></a>
+  When assigning the result of a multi-line expression, do not preserve alignment of its parts.
+  <sup>[[link](#multi-line-expr-assignment)]</sup>
+
+  ```elixir
+  # not preferred
+  {found, not_found} = Enum.map(files, &Path.expand(&1, path))
+                       |> Enum.partition(&File.exists?/1)
+
+  prefix = case base do
+             :binary -> "0b"
+             :octal -> "0o"
+             :hex -> "0x"
+           end
+
+  # preferred
+  {found, not_found} =
+    Enum.map(files, &Path.expand(&1, path))
+    |> Enum.partition(&File.exists?/1)
+
+  prefix = case base do
+    :binary -> "0b"
+    :octal -> "0o"
+    :hex -> "0x"
+  end
+  ```
+
+* <a name="underscores-in-numerics"></a>
+  Add underscores to large numeric literals to improve their readability.
+  <sup>[[link](#underscores-in-numerics)]</sup>
+
+  ```elixir
+  num = 1_000_000
+  ```
+
+* <a name="quotes-around-atoms"></a>
+  When using atom literals that need to be quoted because they contain characters that are invalid in atoms (such as `:"foo-bar"`), use double quotes around the atom name:
+  <sup>[[link](#quotes-around-atoms)]</sup>
+
+  ```elixir
+  # Bad
+  :'foo-bar'
+  :'atom number #{index}'
+
+  # Good
+  :"foo-bar"
+  :"atom number #{index}"
+  ```
+
 * <a name="trailing-whitespace"></a>
   Avoid trailing whitespace.
   <sup>[[link](#trailing-whitespace)]</sup>
@@ -289,6 +397,113 @@ Translations of the guide are available in the following languages:
   def some_function do
     # body omitted
   end
+  ```
+
+* <a name="function-names-with-parentheses"></a>
+  Never put a space between a function name and the opening parenthesis.
+  <sup>[[link](#function-names-with-parentheses)]</sup>
+
+  ```elixir
+  # not preferred
+  f (3 + 2) + 1
+
+  # preferred
+  f(3 + 2) + 1
+  ```
+
+* <a name="function-calls-and-parentheses"></a>
+  Use parentheses in function calls, especially inside a pipeline.
+  <sup>[[link](#function-calls-and-parentheses)]</sup>
+
+  ```elixir
+  # not preferred
+  f 3
+
+  # preferred
+  f(3)
+
+  # not preferred and parses as rem(2, (3 |> g)), which is not what you want.
+  2 |> rem 3 |> g
+
+  # preferred
+  2 |> rem(3) |> g
+  ```
+
+* <a name="macro-calls-and-parentheses"></a>
+  Omit parentheses in macro calls when a do block is passed.
+  <sup>[[link](#macro-calls-and-parentheses)]</sup>
+
+  ```elixir
+  # not preferred
+  quote(do
+    foo
+  end)
+
+  # preferred
+  quote do
+    foo
+  end
+  ```
+
+* <a name="parentheses-and-function-expressions"></a>
+  Optionally omit parentheses in function calls (outside a pipeline) when the
+  last argument is a function expression.
+  <sup>[[link](#parentheses-and-function-expressions)]</sup>
+
+  ```elixir
+  # preferred
+  Enum.reduce(1..10, 0, fn x, acc ->
+    x + acc
+  end)
+
+  # also preferred
+  Enum.reduce 1..10, 0, fn x, acc ->
+    x + acc
+  end
+  ```
+
+* <a name="parentheses-and-functions-with-zero-arity"></a>
+  Parentheses are a must for __local__ zero-arity function calls and definitions.
+  Starting in Elixir 1.4, the compiler will warn you about
+  locations where this ambiguity exists.
+  <sup>[[link](#parentheses-and-functions-with-zero-arity)]</sup>
+
+  ```elixir
+  defp do_stuff, do: ...
+
+  # not preferred
+  def my_func do
+    do_stuff # is this a variable or a function call?
+  end
+
+  # preferred
+  def my_func do
+    do_stuff() # this is clearly a function call
+  end
+  ```
+
+  The same applies to __local__ one-arity function calls in pipelines.
+
+  ```elixir
+  String.strip(input) |> decode()
+  ```
+
+* <a name="anonymous-fun-parens"></a>
+  Never wrap the arguments of anonymous functions in parentheses.
+  <sup>[[link](#anonymous-fun-parens)]</sup>
+
+  ```elixir
+  # not preferred
+  Agent.get(pid, fn(state) -> state end)
+  Enum.reduce(numbers, fn(number, acc) ->
+    acc + number
+  end)
+
+  # preferred
+  Agent.get(pid, fn state -> state end)
+  Enum.reduce(numbers, fn number, acc ->
+    acc + number
+  end)
   ```
 
 * <a name="add-blank-line-after-multiline-assignment"></a>
@@ -362,6 +577,70 @@ Translations of the guide are available in the following languages:
   if some_condition, do: # some_stuff
   ```
 
+* <a name="binary-operators-at-eols"></a>
+  When making a multi-line expression, keep binary operators (the only exception is the `|>` operator) at the ends of the lines.
+  <sup>[[link](#binary-operators-at-eols)]</sup>
+
+  ```elixir
+  # Bad
+  "No matching message.\n"
+  <> "Process mailbox:\n"
+  <> mailbox
+
+  # Good
+  "No matching message.\n" <>
+  "Process mailbox:\n" <>
+  mailbox
+  ```
+
+* <a name="with-clauses"></a>
+  Indent and align successive `with` clauses.
+  Put the `do:` argument on a new line, indented normally.
+  <sup>[[link](#with-clauses)]</sup>
+
+  ```elixir
+  with {:ok, foo} <- fetch(opts, :foo),
+       {:ok, bar} <- fetch(opts, :bar),
+    do: {:ok, foo, bar}
+  ```
+
+* <a name="with-else"></a>
+  If the `with` expression has a `do` block with more than one line, or has an
+  `else` option, use multiline syntax.
+  <sup>[[link](#with-else)]</sup>
+
+  ```elixir
+  with {:ok, foo} <- fetch(opts, :foo),
+       {:ok, bar} <- fetch(opts, :bar) do
+    {:ok, foo, bar}
+  else
+    :error ->
+      {:error, :bad_arg}
+  end
+  ```
+
+* <a name="for-indentation"></a>
+  Use the indentation shown below for the `for` special form:
+  <sup>[[link](#for-indentation)]</sup>
+
+  ```elixir
+  for {alias, _module} <- aliases_from_env(server),
+      [name] = Module.split(alias),
+      starts_with?(name, hint),
+      into: [] do
+    %{kind: :module, type: :alias, name: name}
+  end
+  ```
+
+  If the body of the `do` block is short, the following indentation works as well:
+
+  ```elixir
+  for partition <- 0..(partitions - 1),
+      pair <- safe_lookup(registry, partition, key),
+      into: [],
+    do: pair
+  ```
+
 * <a name="unless-with-else"></a>
   Never use `unless` with `else`.
   Rewrite these with the positive case first.
@@ -381,6 +660,34 @@ Translations of the guide are available in the following languages:
   else
     IO.puts 'failure'
   end
+  ```
+
+* <a name="avoid-double-negations"></a>
+  Never use `unless` with a negated expression as condition. Rewrite with `if`.
+  <sup>[[link](#avoid-double-negations)]</sup>
+
+  ```elixir
+  # preferred way
+  if allowed? do
+    proceed_as_planned
+  end
+
+  # NOT okay - rewrite using `if`
+  unless !allowed? do
+    proceed_as_planned
+  end
+  ```
+
+* <a name="no-nil-else"></a>
+  Omit `else` option in `if` and `unless` clauses if it returns `nil`.
+  <sup>[[link](#no-nil-else)]</sup>
+
+  ```elixir
+  # not preferred
+  if byte_size(data) > 0, do: data, else: nil
+
+  # preferred
+  if byte_size(data) > 0, do: data
   ```
 
 * <a name="true-as-last-condition"></a>
@@ -410,120 +717,126 @@ Translations of the guide are available in the following languages:
   end
   ```
 
-* <a name="function-names-with-parentheses"></a>
-  Never put a space between a function name and the opening parenthesis.
-  <sup>[[link](#function-names-with-parentheses)]</sup>
+* <a name="no-nested-conditionals"></a>
+  Never nest `if`, `unless`, and `case` more than 1 time. If your logic demands it, spread it over multiple functions.
+  <sup>[[link](#no-nested-conditionals)]</sup>
+
+  ```elixir
+  # preferred way
+  defp perform_task(false, hash, config) do
+    nil
+  end
+  defp perform_task(true, hash, config) do
+    hash
+    |> Map.get(:action)
+    |> perform_action(config)
+  end
+
+  defp perform_action(nil, _config) do
+    nil
+  end
+  defp perform_action(:create, _config) do
+    # ...
+  end
+  defp perform_action(:delete, config) do
+    if config[:id] do
+      # ...
+    else
+      # ...
+    end
+  end
+
+  # NOT okay - rule of thumb: it starts to hurt at 3 levels of nesting
+  defp perform_task(valid, hash, config) do
+    if valid do
+      case Map.get(hash, :action) do
+        :create ->
+          # ...
+        :delete ->
+          if sid do   # <-- we reach three levels of nesting here :(
+            # ...
+          else
+            # ...
+          end
+        nil ->
+          nil
+      end
+    end
+  end
+  ```
+ 
+* <a name="boolean-operators"></a>
+  Never use `||`, `&&` and `!` for strictly boolean checks. Use these operators only if any of the arguments are non-boolean.
+  <sup>[[link](#boolean-operators)]</sup>
 
   ```elixir
   # not preferred
-  f (3 + 2) + 1
+  is_atom(name) && name != nil
+  is_binary(task) || is_atom(task)
 
   # preferred
-  f(3 + 2) + 1
+  is_atom(name) and name != nil
+  is_binary(task) or is_atom(task)
+  line && line != 0
+  file || "sample.exs"
   ```
 
-* <a name="function-calls-and-parentheses"></a>
-  Use parentheses in function calls, especially inside a pipeline.
-  <sup>[[link](#function-calls-and-parentheses)]</sup>
+* <a name="patterns-matching-binaries"></a>
+  Favor the binary concatenation operator `<>` over bitstring syntax for patterns matching binaries.
+  <sup>[[link](#patterns-matching-binaries)]</sup>
 
   ```elixir
   # not preferred
-  f 3
+  <<"http://", _rest::bytes>> = input
+  <<first::utf8, rest::bytes>> = input
 
   # preferred
-  f(3)
-
-  # not preferred and parses as rem(2, (3 |> g)), which is not what you want.
-  2 |> rem 3 |> g
-
-  # preferred
-  2 |> rem(3) |> g
+  "http://" <> _rest = input
+  <<first::utf8>> <> rest = input
   ```
 
-* <a name="macro-calls-and-parentheses"></a>
-  Omit parentheses in macro calls when a do block is passed.
-  <sup>[[link](#macro-calls-and-parentheses)]</sup>
+* <a name="hex-literals"></a>
+  Use uppercase in definition of hex literals.
+  <sup>[[link](#hex-literals)]</sup>
 
   ```elixir
   # not preferred
-  quote(do
-    foo
-  end)
+  <<0xef, 0xbb, 0xbf>>
 
   # preferred
-  quote do
-    foo
-  end
+  <<0xEF, 0xBB, 0xBF>>
   ```
-
-* <a name="parentheses-and-function-expressions"></a>
-  Optionally omit parentheses in function calls (outside a pipeline) when the
-  last argument is a function expression.
-  <sup>[[link](#parentheses-and-function-expressions)]</sup>
+ 
+* <a name="alias-modules"></a>
+  When developing applications, try to alias all used modules. This improves readability and makes it easier to reason about the dependencies of a module inside your project. There are obvious exceptions for modules from Elixir's stdlib (e.g. `IO.ANSI`) or if your submodule has a name identical to an existing name (e.g. don't alias `YourProject.List` because that would override `List`). Like most other points in this guide, this is just a suggestion, not a strict rule.
+  <sup>[[link](#alias-modules)]</sup>
 
   ```elixir
-  # preferred
-  Enum.reduce(1..10, 0, fn x, acc ->
-    x + acc
-  end)
+  # While this is completely fine:
 
-  # also preferred
-  Enum.reduce 1..10, 0, fn x, acc ->
-    x + acc
+  defmodule Test do
+    def something do
+      MyApp.External.TwitterAPI.search(...)
+    end
+  end
+
+  # ... you might want to refactor it to look like this:
+
+  defmodule Test do
+    alias MyApp.External.TwitterAPI
+
+    def something do
+      TwitterAPI.search(...)
+    end
   end
   ```
 
-* <a name="parentheses-and-functions-with-zero-arity"></a>
-  Use parentheses for calls to functions with zero arity, so they can be
-  distinguished from variables.
-  Starting in Elixir 1.4, the compiler will warn you about
-  locations where this ambiguity exists.
-  <sup>[[link](#parentheses-and-functions-with-zero-arity)]</sup>
-
-  ```elixir
-  defp do_stuff, do: ...
-
-  # not preferred
-  def my_func do
-    do_stuff # is this a variable or a function call?
-  end
-
-  # preferred
-  def my_func do
-    do_stuff() # this is clearly a function call
-  end
-  ```
-
-* <a name="with-clauses"></a>
-  Indent and align successive `with` clauses.
-  Put the `do:` argument on a new line, indented normally.
-  <sup>[[link](#with-clauses)]</sup>
-
-  ```elixir
-  with {:ok, foo} <- fetch(opts, :foo),
-       {:ok, bar} <- fetch(opts, :bar),
-    do: {:ok, foo, bar}
-  ```
-
-* <a name="with-else"></a>
-  If the `with` expression has a `do` block with more than one line, or has an
-  `else` option, use multiline syntax.
-  <sup>[[link](#with-else)]</sup>
-
-  ```elixir
-  with {:ok, foo} <- fetch(opts, :foo),
-       {:ok, bar} <- fetch(opts, :bar) do
-    {:ok, foo, bar}
-  else
-    :error ->
-      {:error, :bad_arg}
-  end
-  ```
+  The thinking behind this is that you can see the dependencies of your module at a glance. So if you are attempting to build a medium to large project, **this can help you to get your boundaries/layers/contracts right**.
 
 ### Naming
 
 * <a name="snake-case"></a>
-  Use `snake_case` for atoms, functions and variables.
+  Use `snake_case` for atoms, functions, variables and module attributes.
   <sup>[[link](#snake-case)]</sup>
 
   ```elixir
@@ -616,7 +929,27 @@ Translations of the guide are available in the following languages:
   defp do_sum([head | tail], total), do: do_sum(tail, head + total)
   ```
 
+* <a name="snake-case-dirs-files"></a>
+  Use `snake_case` for naming directories and files, e.g. `lib/my_app/task_server.ex`.
+  <sup>[[link](#snake-case-dirs-files)]</sup>
+
+* <a name="one-letter-var"></a>
+  Avoid using one-letter variable names.
+  <sup>[[link](#one-letter-var)]</sup>
+
+* <a name="kernel-functions"></a>
+  Be wary of naming variables and functions the same as functions defined in `Kernel`, especially in cases where the function has arity 0.
+  <sup>[[link](#kernel-functions)]</sup>
+
+* <a name="stdlib-modules"></a>
+  Be wary of naming modules the same as modules in the stdlib. Sometimes `YourProject.DataTypeString` is a less error-prone choice as the seemingly cleaner `YourProject.DataType.String` because aliasing the later in a module makes the *normal* `String` module unavailable.
+  <sup>[[link](#stdlib-modules)]</sup>
+
 ### Comments
+
+> Remember, good code is like a good joke: It needs no explanation.
+>
+> — <cite>Russ Olsen</cite>
 
 * <a name="expressive-code"></a>
   Write expressive code and try to convey your program's intention through
@@ -645,6 +978,15 @@ Translations of the guide are available in the following languages:
   # preferred
   # Capitalization example
   # Use punctuation for complete sentences.
+  ```
+
+* <a name="no-superfluous-comments"></a>
+  Avoid superfluous comments.
+  <sup>[[link](#no-superfluous-comments)]</sup>
+
+  ```elixir
+  # not preferred
+  String.first(input) # Get first grapheme.
   ```
 
 #### Comment Annotations
@@ -840,6 +1182,14 @@ Translations of the guide are available in the following languages:
 Documentation in Elixir (when read either in `iex` with `h` or generated with
 [ExDoc]) uses the [Module Attributes] `@moduledoc` and `@doc`.
 
+* <a name="documentation"></a>
+  First, try to see documentation in a positive light. It is not a chore that you put off for as long as possible (forever). At some point in your project, starting to document parts of your project is an opportunity to communicate important things with future-maintainers, potential users of your API and even your future self.
+  <sup>[[link](#documentation)]</sup>
+
+* <a name="exdoc"></a>
+  Use ExDoc for this, it's great.
+  <sup>[[link](#exdoc)]</sup>
+
 * <a name="moduledocs"></a>
   Always include a `@moduledoc` attribute in the line right after `defmodule` in
   your module.
@@ -942,6 +1292,63 @@ Documentation in Elixir (when read either in `iex` with `h` or generated with
     """
   end
   ```
+
+* <a name="doc-false"></a>
+  Every public function should either be documented or marked via `@doc false` to indicate that there is no intent to document the function in question.
+  <sup>[[link](#doc-false)]</sup>
+
+* <a name="doc-style"></a>
+  Don't put an empty line between `@doc` and its function/macro definition.
+  <sup>[[link](#doc-style)]</sup>
+
+  ```elixir
+  defmodule MyApp.HTTPService do
+    @moduledoc false
+
+    @doc "Sends a POST request to the given `url`."
+    def post(url) do
+      # ...
+    end
+  end
+  ```
+
+* <a name="doc-comments"></a>
+  Although Elixir favors `@moduledoc` and `@doc` as first-class citizens, don't be afraid to communicate via normal code comments as well. But remember: don't use this to explain bad code!
+  <sup>[[link](#doc-comments)]</sup>
+
+  ```elixir
+  # preferred way - provide useful additional information
+  defmodule Credo.Issue do
+    defstruct category:     nil,
+              message:      nil,
+              filename:     nil,
+              line_no:      nil,
+              column:       nil,
+              trigger:      nil,  # optional: the call that triggered the issue
+              metadata:     [],   # optional: filled in by the failing check
+  end
+
+  # NOT okay - "explaining" confusing code and ambiguous names
+  defmodule AbstractCredoIssueInterfaceFactory do
+    def build(input, params \\ []) do
+      Helper.find_values(input, params) # input is either a username or pid
+      |> Enum.reduce %{}, fn {_, meta, _} = value, list ->
+        if valid?(value) do
+          case Map.get(list, :action) do # remember: list is a map!!!!111
+            nil -> nil # why does this break sometimes?
+            val -> Map.put(list, val, true)
+          end
+        else
+          list
+        end
+      end
+    end
+  end
+  ```
+
+* <a name="doc-comments-on-own-lines"></a>
+  If necessary, put longer, more descriptive comments on their own line rather than at the end of a line of code.
+  <sup>[[link](#doc-comments-on-own-lines)]</sup>
 
 ### Typespecs
 
@@ -1075,6 +1482,12 @@ directives (see [Modules](#modules)).
   # preferred
   raise ArgumentError, "this is not valid"
   ```
+  
+  There is one exception to the rule - always capitalize Mix error messages.
+
+  ```elixir
+  Mix.raise "Could not find dependency"
+  ```
 
 ### Collections
 
@@ -1094,9 +1507,65 @@ _No guidelines for collections have been added yet._
   "my" <> _rest = "my string"
   ```
 
+### Sigils
+
+* <a name="sigils"></a>
+  Use sigils where it makes sense, but don't use them in a dogmatic way.
+  <sup>[[link](#sigils)]</sup>
+
+  Example: Don't automatically use `~S` just because there is *one* `"` in your string, but start using it when you would have to escape a lot of double-quotes.
+
+  ```elixir
+  # preferred way - use normal quotes even if one has to be escaped
+  legend = "single quote ('), double quote (\")"
+
+  # use sigils when you would have to escape several quotes otherwise
+  html = ~S(<a href="http://elixir-lang.org" target="_blank" rel="external">Homepage</a>)
+
+  # also okay, but not preferred - important: choose a common sigil and stick with it
+  # avoid using ~S{} in one place while using ~S(), ~S[] and ~S<> in others
+  legend = ~S{single quote ('), double quote (")}
+  html = "<a href=\"http://elixir-lang.org\" target=\"_blank\" rel=\"external\">Homepage</a>"
+  ```
+
 ### Regular Expressions
 
-_No guidelines for regular expressions have been added yet._
+* <a name="pattern-matching-over-regexp"></a>
+  Regular expressions are the last resort. Pattern matching and `String` module are things to start with.
+  <sup>[[link](#pattern-matching-over-regexp)]</sup>
+
+  ```elixir
+  # not preferred
+  Regex.run(~r/#(\d{2})(\d{2})(\d{2})/, color)
+  Regex.match?(~r/(email|password)/, input)
+
+  # preferred
+  <<?#, p1::2-bytes, p2::2-bytes, p3::2-bytes>> = color
+  String.contains?(input, ["email", "password"])
+  ```
+
+* <a name="regex-sigils"></a>
+  Use `~r//` as your "go-to sigil" when it comes to Regexes as they are the easiest to read for people new to Elixir. That said, feel free to use other `~r` sigils when you have several slashes in your expression.
+  <sup>[[link](#regex-sigils)]</sup>
+
+  ```elixir
+  # preferred way - use slashes because they are familiar regex delimiters
+  regex = ~r/\d+/
+
+  # use sigils when you would have to escape several quotes otherwise
+  regex = ~r{http://elixir-lang.org/getting-started/mix-otp/(.+).html}
+  ```
+* <a name="non-capturing-regexp"></a>
+  Use non-capturing groups when you don't use the captured result.
+  <sup>[[link](#non-capturing-regexp)]</sup>
+
+  ```elixir
+  ~r/(?:post|zip )code: (\d+)/
+  ```
+
+* <a name="caret-and-dollar-regexp"></a>
+  Be careful with `^` and `$` as they match start and end of the __line__ respectively. If you want to match the __whole__ string use: `\A` and `\z` (not to be confused with `\Z` which is the equivalent of `\n?\z`).
+  <sup>[[link](#caret-and-dollar-regexp)]</sup>
 
 ### Metaprogramming
 
@@ -1126,7 +1595,24 @@ _No guidelines for regular expressions have been added yet._
   assert {:ok, expected} = actual_function(3)
   ```
 
+### Pitfalls
+
+* <a name="iex-pry"></a>
+  Never leave a call to `IEx.pry` in production code.
+  <sup>[[link](#iex-pry)]</sup>
+
+* <a name="io-inspect"></a>
+  Be wary of calls to `IO.inspect` in production code. If you want to actually log useful information for later debugging, use a combination of `Logger` and `&inspect/1` instead.
+  <sup>[[link](#io-inspect)]</sup>
+
+* <a name="debugging-conditionals"></a>
+  Conditionals should never contain an expression that always evaluates to the same value (such as `true`, `false`, `x == x`). They are most likely leftovers from a debugging session.
+  <sup>[[link](#debugging-conditionals)]</sup>
+
 ### Alternative Style Guides
+
+* [The Elixir Community Style Guide](https://github.com/christopheradams/elixir_style_guide)
+  - The original basis for this guide.
 
 * [Aleksei Magusev's Elixir Style Guide](https://github.com/lexmag/elixir-style-guide#readme)
   — An opinionated Elixir style guide stemming from the coding style practiced
