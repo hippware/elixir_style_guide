@@ -42,20 +42,6 @@ Don't stifle the style.
 
 ## The Guide
 
-This is community style guide for the [Elixir programming language][Elixir].
-Please feel free to make pull requests and suggestions, and be a part of
-Elixir's vibrant community.
-
-If you're looking for other projects to contribute to please see the
-[Hex package manager site][Hex].
-
-<a name="translations"></a>
-Translations of the guide are available in the following languages:
-
-* [Chinese Traditional]
-* [Japanese]
-* [Korean]
-
 ### Source Code Layout
 
 * <a name="spaces-indentation"></a>
@@ -1574,6 +1560,74 @@ _No guidelines for collections have been added yet._
   <sup>[[link](#avoid-metaprogramming)]</sup>
 
 ### Testing
+
+* <a name="describe-blocks"></a>
+  Use a `describe` block to specify what is under test. Usually this will be a function name.
+  <sup>[[link](#describe-blocks)]</sup>
+  
+  ```elixir
+  describe "do_something/2" do
+    # ... tests
+  end
+  ```
+
+* <a name="context-blocks"></a>
+  Use `context` blocks within a `describe` to specify the conditions for the test. The strings in a `context` block
+  should start with "when" at one level of nesting and "and" when nested further.
+  <sup>[[link](#context-blocks)]</sup>
+  
+  ```elixir
+  describe "do_something/2" do
+    context "when the moon is full" do
+      context "and the user's age is divisible by 2" do
+        # ... tests
+      end
+    end
+  end
+  ```
+
+* <a name="one-experiment-multiple-validations"></a>
+  When writing unit tests, prefer the style of doing one experiment with multiple validations. The experiment is performed
+  in the `before` or `setup` block and the validations are in the `test` or `it` blocks.
+  <sup>[[link](#one-experiment-multiple-validations)]</sup>
+  
+  ```elixir
+  describe "do_something/2" do
+    before do
+      result = MyModule.do_something("foo", "bar")
+      {:ok, result: result}
+    end
+    
+    it "should return :ok" do
+      # ...
+    end
+  end
+  ```
+* <a name="it-block-strings"></a>
+  The strings in an "it" block should begin with "should". 
+  <sup>[[link](#it-block-strings)]</sup>
+  
+  ```elixir
+  # preferred
+  it "should do this thing"
+  
+  # not preferred
+  it "does this thing"
+  ```
+  
+* <a name="espec-expectations"></a>
+  Use the "should" syntax for ESpec expecations.
+  <sup>[[link](#espec-expectations)]</sup>
+  
+  ```elixir
+  # preferred
+  smth1 |> should(eq smth2)
+  should eq smth # when subject is defined
+  
+  # not preferred
+  expect(smth1).to eq(smth2)
+  expect smth1 |> to(eq smth2)
+  ```
 
 * <a name="testing-assert-order"></a>
   When writing [ExUnit] assertions, be consistent with the order of the expected
